@@ -20,19 +20,27 @@ class TestAllProperties < Minitest::Test
       ]
     }.to_json)
 
-    Net::HTTP.stubs(:new).returns(mock_http(fake_response))
+    http_mock = mock
+    http_mock.stubs(:request).returns(fake_response)
+
+    @properties.instance_variable_set(:@http, http_mock)
     
-    assert_output("Beautiful House\nModern Apartment") do
+    assert_output("Beautiful House\nModern Apartment\n") do
       @properties.get_all
     end
 	end
 
+  def test_not_found
+    fake_response = mock()
+    fake_response.stubs(:code).returns("400")
 
-	private
-	
-	def mock_http(fake_response)
-    mock = mock()
-    mock.stubs(:request).returns(fake_response)
-    mock
-	end
+    http_mock = mock
+    http_mock.stubs(:request).returns(fake_response)
+
+    @properties.instance_variable_set(:@http, http_mock)
+    
+    assert_output("Properties Not Found.\n") do
+      @properties.get_all
+    end
+  end
 end
